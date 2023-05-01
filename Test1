@@ -1,0 +1,21 @@
+format
+ls /
+mkdir /doc
+ls /
+mkdir /tmp
+ls /
+mkdir /tmp/lib
+ls /
+ls /tmp
+mkdir /tmp/lib/deep
+ls /tmp/lib/deep
+rm /tmp/lib/deep
+rm /tmp/lib
+rm /tmp
+ls /
+create /a.txt
+ls /
+rm /a.txt
+ls /
+format
+ls /

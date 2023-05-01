@@ -1,0 +1,21 @@
+format
+ls /
+ls /doc
+mkdir /new
+mkdir /empty
+mkdir /notempty
+mkdir /existepas/new
+create /notempty/c.txt
+create /b.txt
+create /existepas/b.txt
+ls /
+ls /notempty
+rm /notempty
+ls /
+rm /notempty/c.txt
+rm /notempty
+ls /
+rm /a.txt
+ls /
+format
+ls /
