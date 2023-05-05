@@ -120,16 +120,12 @@ namespace TP3
 
     int bd_mkdir(const std::string& p_DirName) {
 
+        /*
         //Avec "/doc/tmp/test", il faudra valider si doc et tmp existent avant d'ajouter test
-
-        std::string str1 ("/usr/bin/man");
-        std::string str2 ("c:\\windows\\winhelp.exe");
-
-        std::size_t found = str1.find_last_of("/");
-        std::string path = str1.substr(0,found);
-        std::string file = str1.substr(found+1);
-
-
+        int found = p_DirName.find_last_of("/");
+        std::string path = p_DirName.substr(0,found); // /doc/tmp
+        std::string file = p_DirName.substr(found+1); // test
+         */
 
     }
 
