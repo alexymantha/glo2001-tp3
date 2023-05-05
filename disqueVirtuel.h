@@ -39,7 +39,7 @@ public:
 	// Vous pouvez ajouter ici d'autres méthodes publiques
     int premierINodeLibre();
     int premierBlocLibre();
-    void creerRepertoireVide();
+    void creerRepertoireVide(Block *monBlock);
     bool repertoireExiste();
 
 private:

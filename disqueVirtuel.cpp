@@ -37,7 +37,23 @@ namespace TP3
         return premierBlocLibre;
     }
 
-    void DisqueVirtuel::creerRepertoireVide() {
+    void DisqueVirtuel::creerRepertoireVide(Block *monBlock) {
+
+        monBlock->m_type_donnees = S_IFIN;
+
+        iNode *inode = monBlock->m_inode;
+        inode->st_mode = S_IFDIR;
+        inode->st_nlink = 1;
+        inode->st_size = 28;
+
+        monBlock->m_dirEntry = std::vector<dirEntry *>(2);
+
+        dirEntry self = dirEntry(inode->st_ino, ".");
+        dirEntry parent = dirEntry(inode->st_ino - 1, ".."); //TODO Est-ce la bonne manière d'aller chercher le inode parent?
+
+        monBlock->m_dirEntry[0] = &self;
+        monBlock->m_dirEntry[1] = &parent;
+
     }
 
     bool DisqueVirtuel::repertoireExiste() {
@@ -103,6 +119,16 @@ namespace TP3
 	}
 
     int bd_mkdir(const std::string& p_DirName) {
+
+        //Avec "/doc/tmp/test", il faudra valider si doc et tmp existent avant d'ajouter test
+
+        std::string str1 ("/usr/bin/man");
+        std::string str2 ("c:\\windows\\winhelp.exe");
+
+        std::size_t found = str1.find_last_of("/");
+        std::string path = str1.substr(0,found);
+        std::string file = str1.substr(found+1);
+
 
 
     }
