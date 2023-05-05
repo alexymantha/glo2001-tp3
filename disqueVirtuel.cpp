@@ -16,7 +16,8 @@
 namespace TP3
 {
 
-    //Méthodes utilitaires (facultatives)
+    //Méthodes utilitaires
+
     int premierINodeLibre() {
 
     }
@@ -25,13 +26,21 @@ namespace TP3
 
     }
 
-    void creationRepertoireVide() {
+    void creerRepertoireVide() {
 
     }
 
     bool repertoireExiste() {
 
     }
+
+    /*
+    À VOIR
+        Nous vous conseillons d’ajouter d’autres méthodes utilitaires, mais elles ne sont pas obligatoires. Il s’agit par
+        exemple de méthodes permettant d’incrémenter ou de décrémenter le n-link dans l’i-node, d’augmenter ou de
+        diminuer la taille inscrite dans l’i-node, de relâcher ou de saisir un bloc ou un i-node dans le
+        FREE_BLOCK_BITMAP ou dans le FREE_INODE_BITMAP, etc.
+     */
 
     //Méthodes principales à impléemter
 	int DisqueVirtuel::bd_FormatDisk()
@@ -45,10 +54,12 @@ namespace TP3
 		}
 
 		// Bloc 2 : bitmap des blocs libres
+        //FREE_BLOCK_BITMAP
 		m_blockDisque[2].m_type_donnees = S_IFBL;
 		m_blockDisque[2].m_bitmap = std::vector<bool>(127, true);
 
 		// Bloc 3 : bitmap des inodes libres
+        //FREE_INODE_BITMAP
 		// Tous libres sauf le 0 qui est réservé.
 		m_blockDisque[3].m_type_donnees = S_IFIL;
 		m_blockDisque[3].m_bitmap = std::vector<bool>(24, true);
