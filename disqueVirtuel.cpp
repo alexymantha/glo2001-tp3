@@ -12,11 +12,28 @@
 #include "disqueVirtuel.h"
 #include <iostream>
 #include <string>
-// vous pouvez inclure d'autres librairies si c'est nécessaire
 
 namespace TP3
 {
 
+    //Méthodes utilitaires (facultatives)
+    int premierINodeLibre() {
+
+    }
+
+    int premierBlocLibre() {
+
+    }
+
+    void creationRepertoireVide() {
+
+    }
+
+    bool repertoireExiste() {
+
+    }
+
+    //Méthodes principales à impléemter
 	int DisqueVirtuel::bd_FormatDisk()
 	{
 		m_blockDisque = std::vector<Block>(N_BLOCK_ON_DISK);
@@ -66,5 +83,9 @@ namespace TP3
 
 		return 1;
 	}
+
+    int bd_mkdir(const std::string& p_DirName) {
+
+    }
 
 } // Fin du namespace
