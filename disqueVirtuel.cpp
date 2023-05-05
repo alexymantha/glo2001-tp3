@@ -10,7 +10,6 @@
  */
 
 #include "disqueVirtuel.h"
-#include <iostream>
 #include <string>
 
 namespace TP3
@@ -19,19 +18,15 @@ namespace TP3
     //Méthodes utilitaires
 
     int premierINodeLibre() {
-
     }
 
     int premierBlocLibre() {
-
     }
 
     void creerRepertoireVide() {
-
     }
 
     bool repertoireExiste() {
-
     }
 
     /*
@@ -54,22 +49,20 @@ namespace TP3
 		}
 
 		// Bloc 2 : bitmap des blocs libres
-        //FREE_BLOCK_BITMAP
-		m_blockDisque[2].m_type_donnees = S_IFBL;
-		m_blockDisque[2].m_bitmap = std::vector<bool>(127, true);
+		m_blockDisque[FREE_BLOCK_BITMAP].m_type_donnees = S_IFBL;
+		m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap = std::vector<bool>(N_BLOCK_ON_DISK, true);
+
+        // Marquer touts les blocs de 0 à 23 comme non-libres
+        for (int i = 0; i < 24; i++)
+        {
+            m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap[i] = false;
+        }
 
 		// Bloc 3 : bitmap des inodes libres
-        //FREE_INODE_BITMAP
 		// Tous libres sauf le 0 qui est réservé.
-		m_blockDisque[3].m_type_donnees = S_IFIL;
-		m_blockDisque[3].m_bitmap = std::vector<bool>(24, true);
-		m_blockDisque[3].m_bitmap[0] = false;
-
-		// Marquer touts les blocs de 0 à 23 comme non-libres
-		for (int i = 0; i < 24; i++)
-		{
-			m_blockDisque[2].m_bitmap[i] = false;
-		}
+		m_blockDisque[FREE_INODE_BITMAP].m_type_donnees = S_IFIL;
+		m_blockDisque[FREE_INODE_BITMAP].m_bitmap = std::vector<bool>(N_INODE_ON_DISK, true);
+		m_blockDisque[FREE_INODE_BITMAP].m_bitmap[0] = false;
 
 		// Créer les inodes dans les blocs 4 à 23 (1 par bloc)
 		for (int i = 4; i < 24; i++)
@@ -83,6 +76,7 @@ namespace TP3
 		m_blockDisque[5].m_type_donnees = S_IFIN;
 
 		iNode *rootInode = m_blockDisque[5].m_inode;
+        rootInode->st_ino = ROOT_INODE;
 		rootInode->st_mode = S_IFDIR;
 		rootInode->st_nlink = 1;
 		rootInode->st_size = 28;
@@ -96,6 +90,7 @@ namespace TP3
 	}
 
     int bd_mkdir(const std::string& p_DirName) {
+
 
     }
 
