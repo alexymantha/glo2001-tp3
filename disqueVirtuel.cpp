@@ -29,7 +29,7 @@ namespace TP3
 
 		// Bloc 2 : bitmap des blocs libres
 		m_blockDisque[2].m_type_donnees = S_IFBL;
-		m_blockDisque[2].m_bitmap = std::vector<bool>(24, true);
+		m_blockDisque[2].m_bitmap = std::vector<bool>(127, true);
 
 		// Bloc 3 : bitmap des inodes libres
 		// Tous libres sauf le 0 qui est réservé.
@@ -64,7 +64,7 @@ namespace TP3
 		dirEntry selfEntry = dirEntry(1, ".");
 		m_blockDisque[5].m_dirEntry[0] = &selfEntry;
 
-		return 0;
+		return 1;
 	}
 
 } // Fin du namespace
