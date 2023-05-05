@@ -17,16 +17,30 @@ namespace TP3
 
     //Méthodes utilitaires
 
-    int premierINodeLibre() {
+    int DisqueVirtuel::premierINodeLibre() {
+
+        int premierINodeLibre = 0;
+        while (!m_blockDisque[FREE_INODE_BITMAP].m_bitmap[premierINodeLibre]) {
+            premierINodeLibre++;
+            if(premierINodeLibre == N_INODE_ON_DISK) return 0; //TODO Gérer ce cas d'erreur
+        }
+        return premierINodeLibre;
     }
 
-    int premierBlocLibre() {
+    int DisqueVirtuel::premierBlocLibre() {
+
+        int premierBlocLibre = 24;
+        while (!m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap[premierBlocLibre]) {
+            premierBlocLibre++;
+            if(premierBlocLibre == N_INODE_ON_DISK) return 0; //TODO Gérer ce cas d'erreur
+        }
+        return premierBlocLibre;
     }
 
-    void creerRepertoireVide() {
+    void DisqueVirtuel::creerRepertoireVide() {
     }
 
-    bool repertoireExiste() {
+    bool DisqueVirtuel::repertoireExiste() {
     }
 
     /*
@@ -37,7 +51,7 @@ namespace TP3
         FREE_BLOCK_BITMAP ou dans le FREE_INODE_BITMAP, etc.
      */
 
-    //Méthodes principales à impléemter
+    //Méthodes principales à implémenter
 	int DisqueVirtuel::bd_FormatDisk()
 	{
 		m_blockDisque = std::vector<Block>(N_BLOCK_ON_DISK);
@@ -76,7 +90,6 @@ namespace TP3
 		m_blockDisque[5].m_type_donnees = S_IFIN;
 
 		iNode *rootInode = m_blockDisque[5].m_inode;
-        rootInode->st_ino = ROOT_INODE;
 		rootInode->st_mode = S_IFDIR;
 		rootInode->st_nlink = 1;
 		rootInode->st_size = 28;

@@ -37,6 +37,10 @@ public:
 	int bd_rm(const std::string& p_Filename);
 
 	// Vous pouvez ajouter ici d'autres méthodes publiques
+    int premierINodeLibre();
+    int premierBlocLibre();
+    void creerRepertoireVide();
+    bool repertoireExiste();
 
 private:
 	// Il est interdit de modifier ce modèle d'implémentation (i.e le type de m_blockDisque)!
