@@ -56,7 +56,7 @@ namespace TP3
 
     }
 
-    bool DisqueVirtuel::repertoireExiste() {
+    bool DisqueVirtuel::repertoireExiste(std::string str) {
     }
 
     /*
@@ -118,15 +118,26 @@ namespace TP3
 		return 1;
 	}
 
-    int bd_mkdir(const std::string& p_DirName) {
+    int DisqueVirtuel::bd_mkdir(const std::string& p_DirName) {
 
-        /*
-        //Avec "/doc/tmp/test", il faudra valider si doc et tmp existent avant d'ajouter test
+        //Exemple avec "/doc/tmp/test"
+        //path est égal à /doc/tmp
+        //directory est égal à test
+        //On devra ajouter le répertoire test à /doc/tmp
+
         int found = p_DirName.find_last_of("/");
-        std::string path = p_DirName.substr(0,found); // /doc/tmp
-        std::string file = p_DirName.substr(found+1); // test
-         */
+        std::string path = p_DirName.substr(0,found);
+        std::string directory = p_DirName.substr(found+1);
 
+        //Si le chemin d'accès est inexistant
+        if(!repertoireExiste(path)) return 0;
+
+        //Si le répertoire existe déjà
+        if(repertoireExiste(p_DirName)) return 0;
+
+        //TODO Ajouter le nouveau répertoire
+
+        return 1;
     }
 
 } // Fin du namespace

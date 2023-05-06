@@ -40,7 +40,7 @@ public:
     int premierINodeLibre();
     int premierBlocLibre();
     void creerRepertoireVide(Block *monBlock);
-    bool repertoireExiste();
+    bool repertoireExiste(std::string str);
 
 private:
 	// Il est interdit de modifier ce modèle d'implémentation (i.e le type de m_blockDisque)!
