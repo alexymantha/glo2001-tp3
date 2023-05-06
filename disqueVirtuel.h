@@ -39,8 +39,10 @@ public:
 	// Vous pouvez ajouter ici d'autres méthodes publiques
     int premierINodeLibre();
     int premierBlocLibre();
-    void creerRepertoireVide(Block *monBlock);
-    bool repertoireExiste(std::string str);
+    void ajouterRepertoireVide(Block *monBlock, std::string nomRepertoire);
+    Block* blockRepertoire(std::string str);
+    void reserverINode(int pos);
+    void libererINode(int pos);
 
 private:
 	// Il est interdit de modifier ce modèle d'implémentation (i.e le type de m_blockDisque)!

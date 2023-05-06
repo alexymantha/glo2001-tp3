@@ -38,26 +38,40 @@ namespace TP3
         return premierBlocLibre;
     }
 
-    void DisqueVirtuel::creerRepertoireVide(Block *monBlock) {
+    void DisqueVirtuel::reserverINode(int pos) {
+        m_blockDisque[FREE_INODE_BITMAP].m_bitmap.at(pos) = false;
+    }
 
-        monBlock->m_type_donnees = S_IFIN;
+    void DisqueVirtuel::libereriNode(int pos) {
+        m_blockDisque[FREE_INODE_BITMAP].m_bitmap.at(pos) = true;
+    }
 
-        iNode *inode = monBlock->m_inode;
-        inode->st_mode = S_IFDIR;
-        inode->st_nlink = 1;
-        inode->st_size = 28;
+    void DisqueVirtuel::ajouterRepertoireVide(Block *blockParent, std::string nomRepertoire) {
 
-        monBlock->m_dirEntry = std::vector<dirEntry *>(2);
+        //On réserve un inode auprès de FREE_INODE_BITMAP
+        Block *newBlock = &m_blockDisque[premierINodeLibre() + 4];
+        reserverINode(premierINodeLibre());
 
-        dirEntry self = dirEntry(inode->st_ino, ".");
-        dirEntry parent = dirEntry(inode->st_ino - 1, ".."); //TODO Est-ce la bonne manière d'aller chercher le inode parent?
+        //Les métadonnées du nouveau répertoire sont configurées
+        iNode *newInode = newBlock->m_inode;
+        newInode->st_mode = S_IFDIR;
+        newInode->st_nlink = 1;
+        newInode->st_size = 28;
 
-        monBlock->m_dirEntry[0] = &self;
-        monBlock->m_dirEntry[1] = &parent;
+        //Les deux répertoires "." et ".." sont ajoutés au nouveau répertoire
+        newBlock->m_dirEntry = std::vector<dirEntry *>(2);
+        dirEntry self = dirEntry(newInode->st_ino, ".");
+        dirEntry parent = dirEntry(blockParent->m_inode->st_ino, "..");
+        newBlock->m_dirEntry[0] = &self;
+        newBlock->m_dirEntry[1] = &parent;
+
+        //Le nouveau répertoire est ajouté au répertoire parent
+        blockParent->m_dirEntry.push_back(new dirEntry(newInode->st_ino, nomRepertoire));
+        //TODO Incrémenter les st_nlink des parents
 
     }
 
-    bool DisqueVirtuel::repertoireExiste(std::string path) {
+    Block* DisqueVirtuel::blockRepertoire(std::string path) {
 
         //TODO Valider le fonctionnement pour le split string,
         // Je me suis basé sur ce code : https://java2blog.com/split-string-space-cpp/
@@ -73,21 +87,22 @@ namespace TP3
         }
 
         std::vector<dirEntry *> currentDir = m_blockDisque[5].m_dirEntry;
+        int currentINode;
         for (int i = 0; i < directories.size(); i++) {
 
             bool exists = false;
 
             for(int j = 0; j < currentDir.size(); j++) {
                 if(currentDir[j]->m_filename == directories.at(i)) {
-                    int iNodeNext = currentDir[j]->m_iNode;
-                    currentDir = m_blockDisque[iNodeNext].m_dirEntry;
+                    currentINode = currentDir[j]->m_iNode;
+                    currentDir = m_blockDisque[currentINode].m_dirEntry;
                     exists = true;
                     break;
                 }
             }
-            if(!exists) return false; //Le répertoire n'existe pas
+            if(!exists) return NULL; //Le répertoire n'existe pas
         }
-        return true; //Le répertoire existe
+        return &m_blockDisque[currentINode]; //Le répertoire existe, retourne le block du chemin fourni
     }
 
     /*
@@ -129,7 +144,7 @@ namespace TP3
 		for (int i = 4; i < 24; i++)
 		{
 			m_blockDisque[i].m_type_donnees = S_IFIN;
-			m_blockDisque[i].m_inode = new iNode(i - 4, 0, 0, 0, 0);
+			m_blockDisque[i].m_inode = new iNode(i - 4, 0, 0, 0, i); //TODO Valider, j'ai modifié le champ b (0 --> i)
 		}
 
 		// Création de l'inode 1 pour le répertoire racine
@@ -157,16 +172,17 @@ namespace TP3
         //On devra ajouter le répertoire test à /doc/tmp
 
         int found = p_DirName.find_last_of("/");
-        std::string path = p_DirName.substr(0,found);
-        std::string directory = p_DirName.substr(found+1);
+        std::string chemin = p_DirName.substr(0,found);
+        std::string repertoire = p_DirName.substr(found+1);
 
-        //Si le chemin d'accès est inexistant
-        if(!repertoireExiste(path)) return 0;
+        //Si le chemin d'accès est inexistant, on retourne 0
+        if(blockRepertoire(chemin) == NULL) return 0;
 
-        //Si le répertoire existe déjà
-        if(repertoireExiste(p_DirName)) return 0;
+        //Si le répertoire existe déjà, on retourne 0
+        if(blockRepertoire(p_DirName) != NULL) return 0;
 
-        //TODO Ajouter le nouveau répertoire
+        //Sinon, on ajoute le répertoire au chemin
+        ajouterRepertoireVide(blockRepertoire(chemin), repertoire);
 
         return 1;
     }
