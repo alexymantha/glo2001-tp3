@@ -42,7 +42,7 @@ namespace TP3
         m_blockDisque[FREE_INODE_BITMAP].m_bitmap.at(pos) = false;
     }
 
-    void DisqueVirtuel::libereriNode(int pos) {
+    void DisqueVirtuel::libererINode(int pos) {
         m_blockDisque[FREE_INODE_BITMAP].m_bitmap.at(pos) = true;
     }
 
