@@ -11,6 +11,7 @@
 
 #include "disqueVirtuel.h"
 #include <string>
+#include <sstream>
 
 namespace TP3
 {
@@ -56,7 +57,37 @@ namespace TP3
 
     }
 
-    bool DisqueVirtuel::repertoireExiste(std::string str) {
+    bool DisqueVirtuel::repertoireExiste(std::string path) {
+
+        //TODO Valider le fonctionnement pour le split string,
+        // Je me suis basé sur ce code : https://java2blog.com/split-string-space-cpp/
+
+        //On split le string selon le caractère "/"
+        // Si path == "/doc/tmp/test"
+        // Alors directories == ["doc", "tmp", "test"]
+        std::vector<std::string> directories;
+        std::stringstream ss(path);
+        std::string tempo;
+        while (std::getline(ss, tempo, '/')) {
+            directories.push_back(tempo);
+        }
+
+        std::vector<dirEntry *> currentDir = m_blockDisque[5].m_dirEntry;
+        for (int i = 0; i < directories.size(); i++) {
+
+            bool exists = false;
+
+            for(int j = 0; j < currentDir.size(); j++) {
+                if(currentDir[j]->m_filename == directories.at(i)) {
+                    int iNodeNext = currentDir[j]->m_iNode;
+                    currentDir = m_blockDisque[iNodeNext].m_dirEntry;
+                    exists = true;
+                    break;
+                }
+            }
+            if(!exists) return false; //Le répertoire n'existe pas
+        }
+        return true; //Le répertoire existe
     }
 
     /*
