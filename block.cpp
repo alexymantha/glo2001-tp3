@@ -14,7 +14,9 @@
 
 namespace TP3
 {
-	// Ajouter votre code ici !
+	Block::Block() {}
+	Block::Block(size_t td) : m_type_donnees(td) {}
+	Block::~Block() {}
 }
 
 // Fin du namespace
