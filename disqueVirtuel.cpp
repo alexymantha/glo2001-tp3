@@ -13,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 
 namespace TP3
 {
@@ -67,8 +68,8 @@ namespace TP3
 		// Les métadonnées du nouveau répertoire sont configurées
 		iNode *newInode = newBlock->m_inode;
 		newInode->st_mode = S_IFDIR;
-		newInode->st_nlink = 1;
-		newInode->st_size = 28;
+		newInode->st_nlink = 2; // Commence à 2 car "." et ".." sont ajoutés par défaut
+		newInode->st_size = 56; // 56 octets pour "." et ".." de 28 octets chacun
 
 		// Les deux répertoires "." et ".." sont ajoutés au nouveau répertoire
 		newBlock->m_dirEntry = std::vector<dirEntry *>(2);
@@ -79,10 +80,18 @@ namespace TP3
 
 		// Le nouveau répertoire est ajouté au répertoire parent
 		blockParent->m_dirEntry.push_back(new dirEntry(newInode->st_ino, nomRepertoire));
-		// TODO Incrémenter les st_nlink des parents
+
+		// Les métadonnées du répertoire parent sont mises à jour
+		iNode *parentInode = blockParent->m_inode;
+		parentInode->st_nlink++;
+		parentInode->st_size += 28;
 	}
 
-	Block *DisqueVirtuel::blockRepertoire(std::string chemin)
+	/**
+	 * \fn Block *DisqueVirtuel::getBlock(std::string chemin)
+	 * \brief Retourne le block du chemin fourni, null si aucun block n'est trouvé.
+	 */
+	Block *DisqueVirtuel::getBlock(std::string chemin)
 	{
 
 		// TODO Valider le fonctionnement pour le split string,
@@ -174,13 +183,15 @@ namespace TP3
 
 		iNode *rootInode = m_blockDisque[5].m_inode;
 		rootInode->st_mode = S_IFDIR;
-		rootInode->st_nlink = 0;
-		rootInode->st_size = 28;
-		rootInode->st_block = 24;
+		rootInode->st_nlink = 2; // 2 link car "." et ".."
+		rootInode->st_size = 56; // 56 bytes car 2 dirEntry de 28 bytes
 
-		m_blockDisque[5].m_dirEntry = std::vector<dirEntry *>(1);
+		m_blockDisque[5].m_dirEntry = std::vector<dirEntry *>(2);
 		dirEntry *selfEntry = new dirEntry(rootInode->st_ino, ".");
 		m_blockDisque[5].m_dirEntry[0] = selfEntry;
+
+		dirEntry *parentEntry = new dirEntry(rootInode->st_ino, "..");
+		m_blockDisque[5].m_dirEntry[1] = parentEntry;
 
 		return 1;
 	}
@@ -198,21 +209,21 @@ namespace TP3
 		std::string repertoire = p_DirName.substr(found + 1);
 
 		// Si le chemin d'accès est inexistant, on retourne 0
-		if (chemin != "" && blockRepertoire(chemin) == NULL)
+		if (chemin != "" && getBlock(chemin) == NULL)
 		{
 			std::cout << "Le répertoire n'existe pas" << std::endl;
 			return 0;
 		}
 
 		// Si le répertoire existe déjà, on retourne 0
-		if (blockRepertoire(p_DirName) != NULL)
+		if (getBlock(p_DirName) != NULL)
 		{
 			std::cout << "Le répertoire existe déjà" << std::endl;
 			return 0;
 		}
 
 		// Sinon, on ajoute le répertoire au chemin
-		ajouterRepertoireVide(blockRepertoire(chemin), repertoire);
+		ajouterRepertoireVide(getBlock(chemin), repertoire);
 
 		std::cout << "Répertoire créé: " << repertoire << std::endl;
 		return 1;
@@ -220,7 +231,29 @@ namespace TP3
 
 	std::string DisqueVirtuel::bd_ls(const std::string &p_DirLocation)
 	{
-		return "";
+		Block *block = getBlock(p_DirLocation);
+
+		if (block == NULL)
+		{
+			return "Le fichier n'existe pas.";
+		}
+
+		std::stringstream result;
+		result << p_DirLocation << std::endl;
+
+		for (int i = 0; i < block->m_dirEntry.size(); i++)
+		{
+			int inodeNumber = block->m_dirEntry[i]->m_iNode;
+			iNode *inode = m_blockDisque[BASE_BLOCK_INODE + inodeNumber].m_inode;
+
+			result << S_IFDIR ? "d" : "-";
+			result << std::setw(15) << std::right << block->m_dirEntry[i]->m_filename << " ";
+			result << std::setw(10) << std::left << "Size: " << std::right << inode->st_size << " ";
+			result << std::setw(15) << std::left << "inode: " << std::right << inodeNumber << " ";
+			result << std::setw(15) << std::left << "nlink: " << std::right << inode->st_nlink << " ";
+			result << std::endl;
+		}
+		return result.str();
 	}
 
 	int DisqueVirtuel::bd_create(const std::string &p_FileName)
