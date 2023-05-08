@@ -41,6 +41,7 @@ namespace TP3
 		int premierINodeLibre();
 		int premierBlocLibre();
 		void ajouterRepertoireVide(Block *monBlock, std::string nomRepertoire);
+		void ajouterFichierVide(Block *monBlock, std::string nomFichier);
 		Block *getBlock(std::string str);
 		void reserverINode(int pos);
 		void libererINode(int pos);

@@ -86,6 +86,26 @@ namespace TP3
 		parentInode->st_nlink++;
 		parentInode->st_size += 28;
 	}
+	void DisqueVirtuel::ajouterFichierVide(Block *blockParent, std::string nomFichier)
+	{
+		try
+		{
+			Block *newBlock = &m_blockDisque[premierINodeLibre() + 4];
+			reserverINode(premierINodeLibre());
+
+			// Les métadonnées du nouveau fichier sont configurées
+			iNode *newInode = newBlock->m_inode;
+			newInode->st_mode = S_IFREG;
+
+			// Le nouveau fichier est ajouté au répertoire parent
+			blockParent->m_dirEntry.push_back(new dirEntry(newInode->st_ino, nomFichier));
+		}
+		catch (std::exception e)
+		{
+			std::cout << "Erreur ajouterFichierVide: " << e.what() << std::endl;
+		}
+		// On réserve un inode auprès de FREE_INODE_BITMAP
+	}
 
 	/**
 	 * \fn Block *DisqueVirtuel::getBlock(std::string chemin)
@@ -229,6 +249,46 @@ namespace TP3
 		return 1;
 	}
 
+	int DisqueVirtuel::bd_create(const std::string &p_FileName)
+	{
+		try
+		{
+			int found = p_FileName.find_last_of("/");
+			std::string chemin = p_FileName.substr(0, found);
+			std::string file = p_FileName.substr(found + 1);
+
+			// Si le chemin d'accès est inexistant, on retourne 0
+			if (chemin != "" && getBlock(chemin) == NULL)
+			{
+				std::cout << "Le répertoire n'existe pas" << std::endl;
+				return 0;
+			}
+
+			// Si le répertoire existe déjà, on retourne 0
+			if (getBlock(p_FileName) != NULL)
+			{
+				std::cout << "Le fichier existe déjà" << std::endl;
+				return 0;
+			}
+
+			// Sinon, on ajoute le répertoire au chemin
+			ajouterFichierVide(getBlock(chemin), file);
+
+			std::cout << "Fichier créé: " << file << std::endl;
+			return 1;
+		}
+		catch (std::exception e)
+		{
+			std::cout << "Erreur lors de la création du fichier" << std::endl;
+			return 0;
+		}
+	}
+
+	int DisqueVirtuel::bd_rm(const std::string &p_Filename)
+	{
+		return 1;
+	}
+
 	std::string DisqueVirtuel::bd_ls(const std::string &p_DirLocation)
 	{
 		Block *block = getBlock(p_DirLocation);
@@ -254,16 +314,6 @@ namespace TP3
 			result << std::endl;
 		}
 		return result.str();
-	}
-
-	int DisqueVirtuel::bd_create(const std::string &p_FileName)
-	{
-		return 1;
-	}
-
-	int DisqueVirtuel::bd_rm(const std::string &p_Filename)
-	{
-		return 1;
 	}
 
 } // Fin du namespace
