@@ -44340,32 +44340,34 @@ private:
 namespace TP3
 {
 # 27 "/home/alexy/dev/glo2001-tp3/disqueVirtuel.h"
-class DisqueVirtuel {
-public:
- DisqueVirtuel();
- ~DisqueVirtuel();
+ class DisqueVirtuel
+ {
+ public:
+  DisqueVirtuel();
+  ~DisqueVirtuel();
 
 
- int bd_FormatDisk();
- std::string bd_ls(const std::string& p_DirLocation);
- int bd_mkdir(const std::string& p_DirName);
- int bd_create(const std::string& p_FileName);
- int bd_rm(const std::string& p_Filename);
+  int bd_FormatDisk();
+  std::string bd_ls(const std::string &p_DirLocation);
+  int bd_mkdir(const std::string &p_DirName);
+  int bd_create(const std::string &p_FileName);
+  int bd_rm(const std::string &p_Filename);
 
 
-    int premierINodeLibre();
-    int premierBlocLibre();
-    void ajouterRepertoireVide(Block *monBlock, std::string nomRepertoire);
-    Block* blockRepertoire(std::string str);
-    void reserverINode(int pos);
-    void libererINode(int pos);
+  int premierINodeLibre();
+  int premierBlocLibre();
+  void ajouterRepertoireVide(Block *monBlock, std::string nomRepertoire);
+  void ajouterFichierVide(Block *monBlock, std::string nomFichier);
+  Block *getBlock(std::string str);
+  void reserverINode(int pos);
+  void libererINode(int pos);
 
-private:
+ private:
 
-    std::vector<Block> m_blockDisque;
+  std::vector<Block> m_blockDisque;
 
 
-};
+ };
 
 }
 # 16 "/home/alexy/dev/glo2001-tp3/main.cpp" 2

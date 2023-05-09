@@ -306,11 +306,11 @@ namespace TP3
 			int inodeNumber = block->m_dirEntry[i]->m_iNode;
 			iNode *inode = m_blockDisque[BASE_BLOCK_INODE + inodeNumber].m_inode;
 
-			result << S_IFDIR ? "d" : "-";
+			result << (S_IFDIR ? "d" : "-");
 			result << std::setw(15) << std::right << block->m_dirEntry[i]->m_filename << " ";
-			result << std::setw(10) << std::left << "Size: " << std::right << inode->st_size << " ";
-			result << std::setw(15) << std::left << "inode: " << std::right << inodeNumber << " ";
-			result << std::setw(15) << std::left << "nlink: " << std::right << inode->st_nlink << " ";
+			result << std::setw(8) << std::left << "Size: " << std::setw(5) << std::right << inode->st_size << " ";
+			result << std::setw(10) << std::left << "inode: " << std::right << inodeNumber << " ";
+			result << std::setw(10) << std::left << "nlink: " << std::right << inode->st_nlink << " ";
 			result << std::endl;
 		}
 		return result.str();
