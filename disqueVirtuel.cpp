@@ -86,6 +86,7 @@ namespace TP3
 		parentInode->st_nlink++;
 		parentInode->st_size += 28;
 	}
+    
 	void DisqueVirtuel::ajouterFichierVide(Block *blockParent, std::string nomFichier)
 	{
 		try
@@ -284,8 +285,33 @@ namespace TP3
 		}
 	}
 
-	int DisqueVirtuel::bd_rm(const std::string &p_Filename)
+	int DisqueVirtuel::bd_rm(const std::string &p_FileName)
 	{
+        Block *monBlock = getBlock(p_FileName);
+
+        // Si le chemin d'accès est inexistant, on retourne 0
+        if (monBlock == NULL)
+        {
+            std::cout << "Ce chemin n'existe pas" << std::endl;
+            return 0;
+        }
+
+        //Répertoire
+        if (monBlock->m_inode->st_mode == S_IFDIR) {
+
+            //Si le répertoire n’est pas vide, ne faites rien et retournez 0.
+            //Décrémenter st_nlink
+        }
+
+        //Fichier
+        if (monBlock->m_inode->st_mode == S_IFREG) {
+
+            //Détruire l'entrée du fichier
+            //Décrémenter st_nlink
+            //Si st_nlink tombe à zéro, vous devez libérer les blocs de données associés à l’i-node, et libérer aussi ce dernier.
+
+        }
+
 		return 1;
 	}
 
