@@ -1,0 +1,94 @@
+===== Commande format =====
+UFS: saisir i-node 1
+UFS: saisir bloc 24
+=====
+/
+Commande ls / =====
+d . Size: 56 inode: 1 nlink: 2
+d .. Size: 56 inode: 1 nlink: 2
+===== Commande mkdir /doc =====
+UFS: saisir i-node 2
+UFS: saisir bloc 25
+=====
+/
+Commande ls / =====
+d . Size: 84 inode: 1 nlink: 3
+d .. Size: 84 inode: 1 nlink: 3
+d doc Size: 56 inode: 2 nlink: 2
+===== Commande mkdir /tmp =====
+UFS: saisir i-node 3
+UFS: saisir bloc 26
+=====
+/
+Commande ls / =====
+d . Size: 112 inode: 1 nlink: 4
+d .. Size: 112 inode: 1 nlink: 4
+d doc Size: 56 inode: 2 nlink: 2
+d tmp Size: 56 inode: 3 nlink: 2
+===== Commande mkdir /tmp/lib =====
+UFS: saisir i-node 4
+UFS: saisir bloc 27
+=====
+/
+Commande ls / =====
+d . Size: 112 inode: 1 nlink: 4
+d .. Size: 112 inode: 1 nlink: 4
+9
+d doc Size: 56 inode: 2 nlink: 2
+d tmp Size: 84 inode: 3 nlink: 3
+=====
+/tmp
+d
+Commande ls /tmp
+. Size:
+=====
+84 inode: 3 nlink: 3
+d .. Size: 112 inode: 1 nlink: 4
+d lib Size: 56 inode: 4 nlink: 2
+===== Commande mkdir /tmp/lib/deep =====
+UFS: saisir i-node 5
+UFS: saisir bloc 28
+===== Commande ls /tmp/lib/deep =====
+/tmp/lib/deep
+d . Size: 56 inode: 5 nlink: 2
+d .. Size: 84 inode: 4 nlink: 3
+===== Commande rm /tmp/lib/deep =====
+UFS: Relache i-node 5
+UFS: Relache bloc 28
+===== Commande rm /tmp/lib =====
+UFS: Relache i-node 4
+UFS: Relache bloc 27
+===== Commande rm /tmp =====
+UFS: Relache i-node 3
+UFS: Relache bloc 26
+=====
+/
+Commande ls / =====
+d . Size: 84 inode: 1 nlink: 3
+d .. Size: 84 inode: 1 nlink: 3
+d doc Size: 56 inode: 2 nlink: 2
+===== Commande create /a.txt =====
+UFS: saisir i-node 3
+=====
+/
+Commande ls / =====
+d . Size: 112 inode: 1 nlink: 3
+d .. Size: 112 inode: 1 nlink: 3
+d doc Size: 56 inode: 2 nlink: 2
+- a.txt Size: 0 inode: 3 nlink: 1
+===== Commande rm /a.txt =====
+UFS: Relache i-node 3
+=====
+/
+Commande ls / =====
+d . Size: 84 inode: 1 nlink: 3
+d .. Size: 84 inode: 1 nlink: 3
+d doc Size: 56 inode: 2 nlink: 2
+===== Commande format =====
+UFS: saisir i-node 1
+UFS: saisir bloc 24
+===== Commande ls / =====
+/
+10
+d . Size: 56 inode: 1 nlink: 2
+d .. Size: 56 inode: 1 nlink: 2

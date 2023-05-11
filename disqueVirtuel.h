@@ -23,6 +23,7 @@ namespace TP3
 #define FREE_INODE_BITMAP 3 // numero du bloc contenant le bitmap des i-nodes libres
 #define BASE_BLOCK_INODE 4	// bloc de depart ou les i-nodes sont stockes sur disque
 #define ROOT_INODE 1		// numero du i-node correspondant au repertoire racine
+#define FIRST_DATA_BLOCK 24 // numero du premier bloc de donnees
 
 	class DisqueVirtuel
 	{

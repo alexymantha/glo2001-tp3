@@ -32,48 +32,53 @@ namespace TP3
 	int DisqueVirtuel::premierINodeLibre()
 	{
 
-		int premierINodeLibre = 0;
-		while (!m_blockDisque[FREE_INODE_BITMAP].m_bitmap[premierINodeLibre])
+		int inode = 0;
+		while (!m_blockDisque[FREE_INODE_BITMAP].m_bitmap[inode])
 		{
-			premierINodeLibre++;
-			if (premierINodeLibre == N_INODE_ON_DISK)
+			inode++;
+			if (inode == N_INODE_ON_DISK)
 			{
-				return 0; // TODO Gérer ce cas d'erreur
+				return 0;
 			}
 		}
-		return premierINodeLibre;
+		return inode;
 	}
 
 	int DisqueVirtuel::premierBlocLibre()
 	{
-
-		int premierBlocLibre = 24;
-		while (!m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap[premierBlocLibre])
+		int block = FIRST_DATA_BLOCK;
+		while (!m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap[block])
 		{
-			premierBlocLibre++;
-			if (premierBlocLibre == N_INODE_ON_DISK)
+			block++;
+			if (block == N_BLOCK_ON_DISK)
+			{
 				return 0;
+			}
 		}
-		return premierBlocLibre;
+		return block;
 	}
 
 	void DisqueVirtuel::reserverINode(int pos)
 	{
+		std::cout << "UFS: saisir i-node " << pos << std::endl;
 		m_blockDisque[FREE_INODE_BITMAP].m_bitmap.at(pos) = false;
 	}
 
 	void DisqueVirtuel::libererINode(int pos)
 	{
+		std::cout << "UFS: relache i-node " << pos << std::endl;
 		m_blockDisque[FREE_INODE_BITMAP].m_bitmap.at(pos) = true;
 	}
 
 	void DisqueVirtuel::reserverBlock(int pos)
 	{
+		std::cout << "UFS: saisir bloc " << pos << std::endl;
 		m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap.at(pos) = false;
 	}
 
 	void DisqueVirtuel::libererBlock(int pos)
 	{
+		std::cout << "UFS: relache bloc " << pos << std::endl;
 		m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap.at(pos) = true;
 	}
 
@@ -84,11 +89,16 @@ namespace TP3
 		Block *newBlock = &m_blockDisque[premierINodeLibre() + 4];
 		reserverINode(premierINodeLibre());
 
+		// Reserver un bloc pour le nouveau répertoire
+		int blockNo = premierBlocLibre();
+		reserverBlock(blockNo);
+
 		// Les métadonnées du nouveau répertoire sont configurées
 		iNode *newInode = newBlock->m_inode;
 		newInode->st_mode = S_IFDIR;
 		newInode->st_nlink = 2; // Commence à 2 car "." et ".." sont ajoutés par défaut
 		newInode->st_size = 56; // 56 octets pour "." et ".." de 28 octets chacun
+		newInode->st_block = blockNo;
 
 		// Les deux répertoires "." et ".." sont ajoutés au nouveau répertoire
 		newBlock->m_dirEntry = std::vector<dirEntry *>(2);
@@ -108,22 +118,19 @@ namespace TP3
 
 	void DisqueVirtuel::ajouterFichierVide(Block *blockParent, std::string nomFichier)
 	{
-		try
-		{
-			Block *newBlock = &m_blockDisque[premierINodeLibre() + 4];
-			reserverINode(premierINodeLibre());
+		Block *newBlock = &m_blockDisque[premierINodeLibre() + 4];
+		reserverINode(premierINodeLibre());
 
-			// Les métadonnées du nouveau fichier sont configurées
-			iNode *newInode = newBlock->m_inode;
-			newInode->st_mode = S_IFREG;
+		// Les métadonnées du nouveau fichier sont configurées
+		iNode *newInode = newBlock->m_inode;
+		newInode->st_mode = S_IFREG;
+		newInode->st_nlink = 1;
+		newInode->st_size = 0;
+		newInode->st_block = -1;
 
-			// Le nouveau fichier est ajouté au répertoire parent
-			blockParent->m_dirEntry.push_back(new dirEntry(newInode->st_ino, nomFichier));
-		}
-		catch (std::exception e)
-		{
-			std::cout << "Erreur ajouterFichierVide: " << e.what() << std::endl;
-		}
+		// Le nouveau fichier est ajouté au répertoire parent
+		blockParent->m_dirEntry.push_back(new dirEntry(newInode->st_ino, nomFichier));
+		blockParent->m_inode->st_size += 28;
 	}
 
 	/**
@@ -204,7 +211,7 @@ namespace TP3
 
 		// Création de l'inode 1 pour le répertoire racine
 		// 5eme bloc car on laisse le inode 0 libre
-		m_blockDisque[FREE_INODE_BITMAP].m_bitmap[1] = false;
+		reserverINode(1);
 
 		iNode *rootInode = m_blockDisque[5].m_inode;
 		rootInode->st_mode = S_IFDIR;
@@ -217,6 +224,8 @@ namespace TP3
 
 		dirEntry *parentEntry = new dirEntry(rootInode->st_ino, "..");
 		m_blockDisque[5].m_dirEntry[1] = parentEntry;
+
+		reserverBlock(FIRST_DATA_BLOCK); // Réserver le premier bloc pour le répertoire racine
 
 		return 1;
 	}
@@ -250,7 +259,6 @@ namespace TP3
 		// Sinon, on ajoute le répertoire au chemin
 		ajouterRepertoireVide(getBlock(chemin), repertoire);
 
-		std::cout << "Répertoire créé: " << repertoire << std::endl;
 		return 1;
 	}
 
@@ -277,7 +285,6 @@ namespace TP3
 		// Sinon, on ajoute le répertoire au chemin
 		ajouterFichierVide(getBlock(chemin), file);
 
-		std::cout << "Fichier créé: " << file << std::endl;
 		return 1;
 	}
 
@@ -309,62 +316,30 @@ namespace TP3
 
 			// On libère l'inode
 			libererINode(monBlock->m_inode->st_ino);
-
-			// Les métadonnées du répertoire parent sont mises à jour
-			Block *parent = getBlock(chemin);
-
-			parent->m_inode->st_nlink--;
-			parent->m_inode->st_size -= 28;
-
-			int i = 0;
-			for (dirEntry *x : parent->m_dirEntry)
-			{
-				if (x->m_filename == repertoire)
-					break;
-				i++;
-			}
-			parent->m_dirEntry.erase(parent->m_dirEntry.begin() + i);
-
-			std::cout << "Répertoire supprimé: " << repertoire << std::endl;
+			libererBlock(monBlock->m_inode->st_block);
 		}
 
 		// Fichier
 		if (monBlock->m_inode->st_mode == S_IFREG)
 		{
-
-			if (monBlock->m_inode->st_nlink <= 1)
-			{
-
-				// On libère le block
-				libererBlock(monBlock->m_inode->st_block);
-
-				// On libère l'inode
-				libererINode(monBlock->m_inode->st_ino);
-			}
-			else
-			{
-				// On réduit le nombre de lien
-				monBlock->m_inode->st_nlink--;
-			}
-
-			// Les métadonnées du répertoire parent sont mises à jour
-			Block *parent = getBlock(chemin);
-
-			parent->m_inode->st_nlink--;
-			parent->m_inode->st_size -= 28;
-
-			int i = 0;
-			for (dirEntry *x : parent->m_dirEntry)
-			{
-				if (x->m_filename == repertoire)
-					break;
-				i++;
-			}
-			parent->m_dirEntry.erase(parent->m_dirEntry.begin() + i);
-
-			std::cout << "Fichier supprimé: " << repertoire << std::endl;
+			// On libère l'inode
+			libererINode(monBlock->m_inode->st_ino);
 		}
 
+		// Les métadonnées du répertoire parent sont mises à jour
+		Block *parent = getBlock(chemin);
+
+		parent->m_inode->st_nlink--;
+		parent->m_inode->st_size -= 28;
+
+		int i = 0;
+		for (dirEntry *x : parent->m_dirEntry)
+		{
+			if (x->m_filename == repertoire)
+				break;
+			i++;
+		}
+		parent->m_dirEntry.erase(parent->m_dirEntry.begin() + i);
 		return 1;
 	}
 
@@ -385,7 +360,7 @@ namespace TP3
 			int inodeNumber = block->m_dirEntry[i]->m_iNode;
 			iNode *inode = m_blockDisque[BASE_BLOCK_INODE + inodeNumber].m_inode;
 
-			result << (S_IFDIR ? "d" : "-");
+			result << (inode->st_mode == S_IFDIR ? "d" : "-");
 			result << std::setw(15) << std::right << block->m_dirEntry[i]->m_filename << " ";
 			result << std::setw(8) << std::left << "Size: " << std::setw(5) << std::right << inode->st_size << " ";
 			result << std::setw(10) << std::left << "inode: " << std::right << inodeNumber << " ";
