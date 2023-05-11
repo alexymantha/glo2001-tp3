@@ -303,20 +303,28 @@ namespace TP3
 			return 0;
 		}
 
+		// Les métadonnées du répertoire parent sont mises à jour
+		Block *parent = getBlock(chemin);
+
 		// Répertoire
 		if (monBlock->m_inode->st_mode == S_IFDIR)
 		{
 
 			// Si le répertoire n’est pas vide, ne faites rien et retournez 0.
-			if (monBlock->m_inode->st_nlink > 2)
+			if (monBlock->m_dirEntry.size() > 2)
 			{
 				std::cout << "Ce repertoire n'est pas vide" << std::endl;
 				return 0;
 			}
 
-			// On libère l'inode
-			libererINode(monBlock->m_inode->st_ino);
+			// Libérer l'inode si le nombre de liens est égal à 0
+			if (monBlock->m_inode->st_nlink <= 2)
+			{
+				libererINode(monBlock->m_inode->st_ino);
+			}
 			libererBlock(monBlock->m_inode->st_block);
+
+			parent->m_inode->st_nlink--;
 		}
 
 		// Fichier
@@ -326,10 +334,6 @@ namespace TP3
 			libererINode(monBlock->m_inode->st_ino);
 		}
 
-		// Les métadonnées du répertoire parent sont mises à jour
-		Block *parent = getBlock(chemin);
-
-		parent->m_inode->st_nlink--;
 		parent->m_inode->st_size -= 28;
 
 		int i = 0;
