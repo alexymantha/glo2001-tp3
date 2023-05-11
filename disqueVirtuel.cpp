@@ -58,6 +58,16 @@ namespace TP3
 		m_blockDisque[FREE_INODE_BITMAP].m_bitmap.at(pos) = true;
 	}
 
+	void DisqueVirtuel::reserverBlock(int pos)
+	{
+		m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap.at(pos) = false;
+	}
+
+	void DisqueVirtuel::libererBlock(int pos)
+	{
+		m_blockDisque[FREE_BLOCK_BITMAP].m_bitmap.at(pos) = true;
+	}
+
 	void DisqueVirtuel::ajouterRepertoireVide(Block *blockParent, std::string nomRepertoire)
 	{
 
@@ -105,7 +115,6 @@ namespace TP3
 		{
 			std::cout << "Erreur ajouterFichierVide: " << e.what() << std::endl;
 		}
-		// On réserve un inode auprès de FREE_INODE_BITMAP
 	}
 
 	/**
@@ -301,7 +310,7 @@ namespace TP3
 			libererINode(monBlock->m_inode->st_ino);
 
 			//Les métadonnées du répertoire parent sont mises à jour
-			Block *parent = &m_blockDisque[monBlock->m_dirEntry[1]->m_iNode + 4];
+			Block *parent = getBlock(chemin);
 
 			parent->m_inode->st_nlink--;
 			parent->m_inode->st_size -= 28;
@@ -319,9 +328,32 @@ namespace TP3
         //Fichier
         if (monBlock->m_inode->st_mode == S_IFREG) {
 
-            //Détruire l'entrée du fichier
-            //Décrémenter st_nlink
-            //Si st_nlink tombe à zéro, vous devez libérer les blocs de données associés à l’i-node, et libérer aussi ce dernier.
+			if(monBlock->m_inode->st_nlink <= 1) {
+
+				//On libère le block
+				libererBlock(monBlock->m_inode->st_block);
+
+				//On libère l'inode
+				libererINode(monBlock->m_inode->st_ino);
+			}
+			else {
+				//On réduit le nombre de lien
+				monBlock->m_inode->st_nlink--;
+			}
+			
+			//Les métadonnées du répertoire parent sont mises à jour
+			Block *parent = getBlock(chemin);
+
+			parent->m_inode->st_nlink--;
+			parent->m_inode->st_size -= 28;
+			
+			int i = 0;
+			for (dirEntry *x : parent->m_dirEntry) {
+				if(x->m_filename == repertoire) break;
+				i++;
+			}       
+			parent->m_dirEntry.erase(parent->m_dirEntry.begin() + i);
+
 
 			std::cout << "Fichier supprimé: " << repertoire << std::endl;
         }

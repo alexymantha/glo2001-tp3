@@ -45,6 +45,8 @@ namespace TP3
 		Block *getBlock(std::string str);
 		void reserverINode(int pos);
 		void libererINode(int pos);
+		void reserverBlock(int pos);
+		void libererBlock(int pos);
 
 	private:
 		// Il est interdit de modifier ce modèle d'implémentation (i.e le type de m_blockDisque)!
