@@ -289,6 +289,10 @@ namespace TP3
 	{
         Block *monBlock = getBlock(p_FileName);
 
+		int found = p_FileName.find_last_of("/");
+		std::string chemin = p_FileName.substr(0, found);
+		std::string repertoire = p_FileName.substr(found + 1);
+
         // Si le chemin d'accès est inexistant, on retourne 0
         if (monBlock == NULL)
         {
@@ -300,7 +304,26 @@ namespace TP3
         if (monBlock->m_inode->st_mode == S_IFDIR) {
 
             //Si le répertoire n’est pas vide, ne faites rien et retournez 0.
-            //Décrémenter st_nlink
+			if(monBlock->m_inode->st_nlink > 2) {
+            	std::cout << "Ce repertoire n'est pas vide" << std::endl;
+            	return 0;
+			}
+
+			//On libère l'inode
+			libererINode(monBlock->m_inode->st_ino);
+
+			//Les métadonnées du répertoire parent sont mises à jour
+			Block *parent = &m_blockDisque[monBlock->m_dirEntry[1]->m_iNode + 4];
+
+			parent->m_inode->st_nlink--;
+			parent->m_inode->st_size -= 28;
+			
+			int i = 0;
+			for (dirEntry *x : parent->m_dirEntry) {
+				if(x->m_filename == repertoire) break;
+				i++;
+			}       
+			parent->m_dirEntry.erase(parent->m_dirEntry.begin() + i);
         }
 
         //Fichier
