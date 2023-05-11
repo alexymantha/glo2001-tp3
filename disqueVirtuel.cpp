@@ -20,8 +20,8 @@ namespace TP3
 
 	DisqueVirtuel::DisqueVirtuel() {}
 	DisqueVirtuel::~DisqueVirtuel() {}
-	// Méthodes utilitaires
 
+	// Méthodes utilitaires
 	int DisqueVirtuel::premierINodeLibre()
 	{
 
@@ -30,7 +30,7 @@ namespace TP3
 		{
 			premierINodeLibre++;
 			if (premierINodeLibre == N_INODE_ON_DISK)
-				return 0; // TODO Gérer ce cas d'erreur
+				return 0;
 		}
 		return premierINodeLibre;
 	}
@@ -43,7 +43,7 @@ namespace TP3
 		{
 			premierBlocLibre++;
 			if (premierBlocLibre == N_INODE_ON_DISK)
-				return 0; // TODO Gérer ce cas d'erreur
+				return 0;
 		}
 		return premierBlocLibre;
 	}
@@ -114,10 +114,6 @@ namespace TP3
 	 */
 	Block *DisqueVirtuel::getBlock(std::string chemin)
 	{
-
-		// TODO Valider le fonctionnement pour le split string,
-		//  Je me suis basé sur ce code : https://java2blog.com/split-string-space-cpp/
-
 		// On split le string selon le caractère "/"
 		//  Si path == "/doc/tmp/test"
 		//  Alors directories == ["doc", "tmp", "test"]
@@ -155,14 +151,6 @@ namespace TP3
 		}
 		return &m_blockDisque[currentBlock]; // Le répertoire existe, retourne le block du chemin fourni
 	}
-
-	/*
-	À VOIR
-		Nous vous conseillons d’ajouter d’autres méthodes utilitaires, mais elles ne sont pas obligatoires. Il s’agit par
-		exemple de méthodes permettant d’incrémenter ou de décrémenter le n-link dans l’i-node, d’augmenter ou de
-		diminuer la taille inscrite dans l’i-node, de relâcher ou de saisir un bloc ou un i-node dans le
-		FREE_BLOCK_BITMAP ou dans le FREE_INODE_BITMAP, etc.
-	 */
 
 	// Méthodes principales à implémenter
 	int DisqueVirtuel::bd_FormatDisk()
@@ -324,6 +312,8 @@ namespace TP3
 				i++;
 			}       
 			parent->m_dirEntry.erase(parent->m_dirEntry.begin() + i);
+            
+			std::cout << "Répertoire supprimé: " << repertoire << std::endl;
         }
 
         //Fichier
@@ -333,6 +323,7 @@ namespace TP3
             //Décrémenter st_nlink
             //Si st_nlink tombe à zéro, vous devez libérer les blocs de données associés à l’i-node, et libérer aussi ce dernier.
 
+			std::cout << "Fichier supprimé: " << repertoire << std::endl;
         }
 
 		return 1;
