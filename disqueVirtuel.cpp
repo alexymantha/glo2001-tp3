@@ -18,8 +18,15 @@
 namespace TP3
 {
 
-	DisqueVirtuel::DisqueVirtuel() {}
-	DisqueVirtuel::~DisqueVirtuel() {}
+	DisqueVirtuel::DisqueVirtuel()
+	{
+		// Initialisation du disque
+		m_blockDisque = std::vector<Block>(N_BLOCK_ON_DISK);
+	}
+	DisqueVirtuel::~DisqueVirtuel()
+	{
+		// Rien à faire, pas nécessaire de libérer la mémoire pour un vecteur
+	}
 
 	// Méthodes utilitaires
 	int DisqueVirtuel::premierINodeLibre()
@@ -30,7 +37,9 @@ namespace TP3
 		{
 			premierINodeLibre++;
 			if (premierINodeLibre == N_INODE_ON_DISK)
-				return 0;
+			{
+				return 0; // TODO Gérer ce cas d'erreur
+			}
 		}
 		return premierINodeLibre;
 	}
@@ -96,7 +105,7 @@ namespace TP3
 		parentInode->st_nlink++;
 		parentInode->st_size += 28;
 	}
-    
+
 	void DisqueVirtuel::ajouterFichierVide(Block *blockParent, std::string nomFichier)
 	{
 		try
@@ -164,8 +173,6 @@ namespace TP3
 	// Méthodes principales à implémenter
 	int DisqueVirtuel::bd_FormatDisk()
 	{
-		m_blockDisque = std::vector<Block>(N_BLOCK_ON_DISK);
-
 		// Population de tous les blocs
 		for (int i = 0; i < N_BLOCK_ON_DISK; i++)
 		{
@@ -249,114 +256,114 @@ namespace TP3
 
 	int DisqueVirtuel::bd_create(const std::string &p_FileName)
 	{
-		try
+		int found = p_FileName.find_last_of("/");
+		std::string chemin = p_FileName.substr(0, found);
+		std::string file = p_FileName.substr(found + 1);
+
+		// Si le chemin d'accès est inexistant, on retourne 0
+		if (chemin != "" && getBlock(chemin) == NULL)
 		{
-			int found = p_FileName.find_last_of("/");
-			std::string chemin = p_FileName.substr(0, found);
-			std::string file = p_FileName.substr(found + 1);
-
-			// Si le chemin d'accès est inexistant, on retourne 0
-			if (chemin != "" && getBlock(chemin) == NULL)
-			{
-				std::cout << "Le répertoire n'existe pas" << std::endl;
-				return 0;
-			}
-
-			// Si le répertoire existe déjà, on retourne 0
-			if (getBlock(p_FileName) != NULL)
-			{
-				std::cout << "Le fichier existe déjà" << std::endl;
-				return 0;
-			}
-
-			// Sinon, on ajoute le répertoire au chemin
-			ajouterFichierVide(getBlock(chemin), file);
-
-			std::cout << "Fichier créé: " << file << std::endl;
-			return 1;
-		}
-		catch (std::exception e)
-		{
-			std::cout << "Erreur lors de la création du fichier" << std::endl;
+			std::cout << "Le répertoire n'existe pas" << std::endl;
 			return 0;
 		}
+
+		// Si le répertoire existe déjà, on retourne 0
+		if (getBlock(p_FileName) != NULL)
+		{
+			std::cout << "Le fichier existe déjà" << std::endl;
+			return 0;
+		}
+
+		// Sinon, on ajoute le répertoire au chemin
+		ajouterFichierVide(getBlock(chemin), file);
+
+		std::cout << "Fichier créé: " << file << std::endl;
+		return 1;
 	}
 
 	int DisqueVirtuel::bd_rm(const std::string &p_FileName)
 	{
-        Block *monBlock = getBlock(p_FileName);
+		Block *monBlock = getBlock(p_FileName);
 
 		int found = p_FileName.find_last_of("/");
 		std::string chemin = p_FileName.substr(0, found);
 		std::string repertoire = p_FileName.substr(found + 1);
 
-        // Si le chemin d'accès est inexistant, on retourne 0
-        if (monBlock == NULL)
-        {
-            std::cout << "Ce chemin n'existe pas" << std::endl;
-            return 0;
-        }
+		// Si le chemin d'accès est inexistant, on retourne 0
+		if (monBlock == NULL)
+		{
+			std::cout << "Ce chemin n'existe pas" << std::endl;
+			return 0;
+		}
 
-        //Répertoire
-        if (monBlock->m_inode->st_mode == S_IFDIR) {
+		// Répertoire
+		if (monBlock->m_inode->st_mode == S_IFDIR)
+		{
 
-            //Si le répertoire n’est pas vide, ne faites rien et retournez 0.
-			if(monBlock->m_inode->st_nlink > 2) {
-            	std::cout << "Ce repertoire n'est pas vide" << std::endl;
-            	return 0;
+			// Si le répertoire n’est pas vide, ne faites rien et retournez 0.
+			if (monBlock->m_inode->st_nlink > 2)
+			{
+				std::cout << "Ce repertoire n'est pas vide" << std::endl;
+				return 0;
 			}
 
-			//On libère l'inode
+			// On libère l'inode
 			libererINode(monBlock->m_inode->st_ino);
 
-			//Les métadonnées du répertoire parent sont mises à jour
+			// Les métadonnées du répertoire parent sont mises à jour
 			Block *parent = getBlock(chemin);
 
 			parent->m_inode->st_nlink--;
 			parent->m_inode->st_size -= 28;
-			
+
 			int i = 0;
-			for (dirEntry *x : parent->m_dirEntry) {
-				if(x->m_filename == repertoire) break;
+			for (dirEntry *x : parent->m_dirEntry)
+			{
+				if (x->m_filename == repertoire)
+					break;
 				i++;
-			}       
+			}
 			parent->m_dirEntry.erase(parent->m_dirEntry.begin() + i);
-            
+
 			std::cout << "Répertoire supprimé: " << repertoire << std::endl;
-        }
+		}
 
-        //Fichier
-        if (monBlock->m_inode->st_mode == S_IFREG) {
+		// Fichier
+		if (monBlock->m_inode->st_mode == S_IFREG)
+		{
 
-			if(monBlock->m_inode->st_nlink <= 1) {
+			if (monBlock->m_inode->st_nlink <= 1)
+			{
 
-				//On libère le block
+				// On libère le block
 				libererBlock(monBlock->m_inode->st_block);
 
-				//On libère l'inode
+				// On libère l'inode
 				libererINode(monBlock->m_inode->st_ino);
 			}
-			else {
-				//On réduit le nombre de lien
+			else
+			{
+				// On réduit le nombre de lien
 				monBlock->m_inode->st_nlink--;
 			}
-			
-			//Les métadonnées du répertoire parent sont mises à jour
+
+			// Les métadonnées du répertoire parent sont mises à jour
 			Block *parent = getBlock(chemin);
 
 			parent->m_inode->st_nlink--;
 			parent->m_inode->st_size -= 28;
-			
+
 			int i = 0;
-			for (dirEntry *x : parent->m_dirEntry) {
-				if(x->m_filename == repertoire) break;
+			for (dirEntry *x : parent->m_dirEntry)
+			{
+				if (x->m_filename == repertoire)
+					break;
 				i++;
-			}       
+			}
 			parent->m_dirEntry.erase(parent->m_dirEntry.begin() + i);
 
-
 			std::cout << "Fichier supprimé: " << repertoire << std::endl;
-        }
+		}
 
 		return 1;
 	}
